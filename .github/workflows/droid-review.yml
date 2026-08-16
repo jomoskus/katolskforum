@@ -1,13 +1,16 @@
-# Uavhengig tredjeparts kodegjennomgang med Factory Droid og en
-# Synthetic-modell (GLM/Kimi), jf. docs/FABRIKKEN.md steg 5.
+# Uavhengige tredjeparts kodegjennomganger med Factory Droid og
+# Synthetic-modeller, jf. docs/FABRIKKEN.md steg 5. Kjører to reviews per
+# PR med to forskjellige modellfamilier (GLM og Kimi) – begge dekket av
+# det faste Synthetic-abonnementet, ingen per-bruk-kostnad.
 #
 # Krever GitHub-secrets:
 #   FACTORY_API_KEY    – fra app.factory.ai
-#   SYNTHETIC_API_KEY  – fra synthetic.new (kobles som custom model i Factory)
-# Valgfri GitHub-variabel:
-#   DROID_MODEL_ID     – modell-ID hos Synthetic (standard: hf:zai-org/GLM-4.6)
+#   SYNTHETIC_API_KEY  – fra synthetic.new
 #
-# Uten secrets hopper jobben stille over, slik at forks og lokale kloner
+# Modellene byttes ved å redigere matrisen under (se gyldige ID-er på
+# https://dev.synthetic.new/docs/api/models).
+#
+# Uten secrets hopper jobbene stille over, slik at forks og lokale kloner
 # ikke feiler.
 
 name: droid-review
@@ -21,12 +24,21 @@ permissions:
 
 jobs:
   review:
-    name: Uavhengig modellreview (GLM/Kimi)
+    name: Uavhengig modellreview (${{ matrix.reviewer.name }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        reviewer:
+          - name: GLM
+            model: 'hf:zai-org/GLM-5.2'
+          - name: Kimi
+            model: 'hf:moonshotai/Kimi-K3'
     env:
       FACTORY_API_KEY: ${{ secrets.FACTORY_API_KEY }}
       SYNTHETIC_API_KEY: ${{ secrets.SYNTHETIC_API_KEY }}
-      DROID_MODEL_ID: ${{ vars.DROID_MODEL_ID || 'hf:zai-org/GLM-4.6' }}
+      REVIEWER_NAME: ${{ matrix.reviewer.name }}
+      REVIEWER_MODEL: ${{ matrix.reviewer.model }}
 
     steps:
       - name: Hopp over uten API-nøkler
@@ -53,7 +65,7 @@ jobs:
             "custom_models": [
               {
                 "model_display_name": "synthetic-reviewer",
-                "model": "${DROID_MODEL_ID}",
+                "model": "${REVIEWER_MODEL}",
                 "base_url": "https://api.synthetic.new/openai/v1",
                 "api_key": "${SYNTHETIC_API_KEY}",
                 "provider": "generic-chat-completion-api"
@@ -95,7 +107,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           {
-            echo "## Uavhengig modellreview (Droid / ${DROID_MODEL_ID})"
+            echo "## Uavhengig modellreview (${REVIEWER_NAME} · ${REVIEWER_MODEL})"
             echo
             cat /tmp/review.md
           } > /tmp/comment.md

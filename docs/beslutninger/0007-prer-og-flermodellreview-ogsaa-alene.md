@@ -12,9 +12,10 @@ eller om man kan committe rett til `main`.
 All endring går via PR fra dag én, jf. `docs/FABRIKKEN.md`:
 
 1. CI-portene kjører på PR-er og blokkerer fletting.
-2. Flermodell-reviewene (Bugbot, Codex-review, Droid/GLM/Kimi) er festet til
-   PR-er — uten PR finnes det ingen flate der uavhengige modeller kan
-   kommentere, og ingen arkivert begrunnelse for valgene.
+2. Flermodell-reviewene (Codex-review, Droid med GLM og Kimi, manuelle
+   Cursor-agent-reviews) er festet til PR-er — uten PR finnes det ingen
+   flate der uavhengige modeller kan kommentere, og ingen arkivert
+   begrunnelse for valgene.
 3. PR-en er overleveringsformatet mellom agenter: neste agent skal kunne
    lese historikken og ta over.
 

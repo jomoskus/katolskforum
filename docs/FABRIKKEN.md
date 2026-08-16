@@ -10,11 +10,14 @@ skriver kode aldri er den eneste som vurderer den:
 
 | Kapasitet | Verktøy | Typisk rolle |
 | --- | --- | --- |
-| Cursor (abonnement) | Cursor-agenter, skyagenter, **Bugbot** på PR-er | Implementasjon, review |
-| Codex (abonnement) | Codex CLI/cloud, **Codex-review** på PR-er | Spesifikasjon, implementasjon, review |
-| Synthetic.new | **GLM** og **Kimi** via Factory Droid (CLI/CI) | Uavhengig kritikk og review |
+| Cursor (abonnement) | Cursor-agenter (editor, CLI og sky) | Implementasjon, manuell review av større endringer |
+| Codex (abonnement) | Codex CLI/cloud, **Codex-review** på PR-er | Spesifikasjon, implementasjon, automatisk review |
+| Synthetic.new (fast pris) | **GLM** og **Kimi** via Factory Droid (CLI/CI) | To uavhengige automatiske reviews per PR |
 
 Mennesket er produkteier og eneste som fletter til `main`.
+
+Alle lagene dekkes av faste abonnementer — ingen per-bruk-fakturering.
+(Cursors Bugbot er bevisst utelatt: den prises per bruk.)
 
 ## Grunnprinsipper
 
@@ -86,12 +89,16 @@ arkitekturtester, `composer audit`.
 
 **Flermodell-review (blokkerende):**
 
-1. **Bugbot** (Cursor) reviewer PR-en automatisk.
-2. **Codex-review** kjøres på PR-en (cloud-review eller `codex review` lokalt).
-3. **Uavhengig tredjepart:** Factory Droid med GLM eller Kimi
-   (Synthetic.new) reviewer diffen — automatisk via workflowen
-   `droid-review` hvis `FACTORY_API_KEY` er satt, ellers manuelt med
-   `droid exec` lokalt.
+1. **Codex-review** kjøres på PR-en (automatisk cloud-review, inkludert i
+   Codex-abonnementet; alternativt `codex review` lokalt).
+2. **To uavhengige tredjeparter:** workflowen `droid-review` kjører Factory
+   Droid to ganger per PR — én gang med **GLM** og én gang med **Kimi**
+   (Synthetic.new, fast pris) — og poster funnene som PR-kommentarer.
+   Uten API-nøkler hopper den stille over; kjør da `droid exec` manuelt.
+3. **Ved større eller risikable endringer:** manuell review med en
+   Cursor-agent (editor eller CLI), som dekkes av Cursor-abonnementet.
+   Be agenten eksplisitt om å granske diffen mot AGENTS.md og
+   kanttilfelleregisteret.
 
 Hvert funn behandles skriftlig i PR-en: **fiks** eller **avvis med
 begrunnelse**. Ingen funn kan stå ubesvart ved fletting.
@@ -117,22 +124,21 @@ Bare mennesket fletter. Squash-merge for ryddig historikk. Grenen slettes.
 
 Gjøres én gang av mennesket (agenter kan ikke gjøre dette):
 
-1. **Bugbot:** slå på for repoet i Cursor Dashboard → Bugbot.
-2. **Codex-review:** slå på automatisk kodegjennomgang for repoet i
+1. **Codex-review:** slå på automatisk kodegjennomgang for repoet i
    Codex-innstillingene (chatgpt.com/codex).
-3. **Droid-review:** legg inn GitHub-secrets `FACTORY_API_KEY` (app.factory.ai)
+2. **Droid-review:** legg inn GitHub-secrets `FACTORY_API_KEY` (app.factory.ai)
    og `SYNTHETIC_API_KEY` (synthetic.new) under Settings → Secrets → Actions.
-   Modell kan overstyres med variabelen `DROID_MODEL_ID`
-   (f.eks. `hf:moonshotai/Kimi-K2-Instruct`).
-4. **Grenvern på `main`:** Settings → Branches → krev at `ci / Kvalitetsporter`
+   Modellene (GLM og Kimi) byttes ved å redigere matrisen i
+   `.github/workflows/droid-review.yml`.
+3. **Grenvern på `main`:** Settings → Branches → krev at `ci / Kvalitetsporter`
    er grønn før fletting, krev én godkjenning, og slå på squash-merge.
-5. **Cursor skyagenter:** repoet har `.cursor/environment.json`; første
+4. **Cursor skyagenter:** repoet har `.cursor/environment.json`; første
    skyagent-VM bygges automatisk med `.cursor/install.sh`.
 
 ## Hvorfor PR-er når jeg er alene i repoet?
 
 Fordi hele flermodell-maskineriet er festet til PR-er: CI-portene kjører på
-PR-er, Bugbot/Codex/Droid leser PR-er, og funn/avvisninger arkiveres der.
+PR-er, Codex og Droid-reviewene leser PR-er, og funn/avvisninger arkiveres der.
 PR-en er også kontrakten som gjør at en hvilken som helst agent kan ta over
 saken senere. Grenvern på `main` (krev grønn CI + én godkjenning) anbefales
 konfigurert i GitHub-innstillingene.

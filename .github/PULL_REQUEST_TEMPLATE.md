@@ -24,7 +24,8 @@
 
 <!-- Fylles ut/verifiseres før fletting, jf. docs/FABRIKKEN.md steg 5 -->
 
-- [ ] Cursor Bugbot har vurdert PR-en
 - [ ] Codex-review har vurdert PR-en
-- [ ] Uavhengig modell (GLM/Kimi via Factory Droid) har vurdert PR-en
+- [ ] Droid/GLM har vurdert PR-en (automatisk workflow)
+- [ ] Droid/Kimi har vurdert PR-en (automatisk workflow)
+- [ ] Ved større endringer: manuell Cursor-agent-review er gjennomført
 - [ ] Alle funn er enten rettet eller eksplisitt avvist med begrunnelse i tråden
