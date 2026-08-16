@@ -44,4 +44,3 @@ Alle porter håndheves i CI og er beskrevet i
 | [`docs/ARKITEKTUR.md`](docs/ARKITEKTUR.md) | Struktur og viktige mekanismer |
 | [`docs/OBSERVABILITET.md`](docs/OBSERVABILITET.md) | Feilsporing, logger og rutiner i produksjon |
 | [`docs/beslutninger/`](docs/beslutninger/) | Arkitekturbeslutninger (ADR) |
-| [`docs/gjennomgang.pdf`](docs/gjennomgang.pdf) | Utskrivbar gjennomgang av grunnmuren (A4) |
