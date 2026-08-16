@@ -20,8 +20,8 @@ All endring går via PR fra dag én, jf. `docs/FABRIKKEN.md`:
    lese historikken og ta over.
 
 Anbefalt grenvern på `main` (settes i GitHub-innstillingene): krev grønn
-CI og minst én godkjenning; squash-merge. Grenenes livsløp etter PR-en
-står i ADR-0008.
+CI og minst én godkjenning; squash-merge; krev at grenen er à jour med
+`main` før fletting. Grenenes livsløp etter PR-en står i ADR-0008.
 
 ## Konsekvenser
 

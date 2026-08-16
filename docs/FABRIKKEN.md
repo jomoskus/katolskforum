@@ -194,7 +194,10 @@ etter hvert:
   `gh label create 'fabrikk:implementer' -c '#0e8a16' -d 'Lanserer Cursor-skyagent som åpner PR'`.
 - [ ] **Grenvern på `main`:** Settings → Branches → krev at
   `ci / Kvalitetsporter` og `fabrikk-lint / PR følger Fabrikken` er grønne
-  før fletting, krev én godkjenning, og slå på squash-merge.
+  før fletting, krev én godkjenning, slå på squash-merge, og krev at
+  grenen er à jour med `main` (**Require branches to be up to date
+  before merging**). Rebase er ikke påkrevd; GitHubs «Update branch» er
+  nok.
 - [ ] **Slett grener etter fletting:** Settings → General → Pull Requests →
   huk av **Automatically delete head branches**. Det er GitHubs egen
   sletting etter squash-merge, ikke en egen jobb. Lukker du en PR uten
