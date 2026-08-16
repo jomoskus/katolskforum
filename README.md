@@ -37,7 +37,7 @@ Alle porter håndheves i CI og er beskrevet i
 | Dokument | Innhold |
 | --- | --- |
 | [`AGENTS.md`](AGENTS.md) | Instruks for KI-agenter (kommandoer, regler, grenser) |
-| [`docs/FABRIKKEN.md`](docs/FABRIKKEN.md) | Utviklingsprosessen: spesifikasjon → kritikk → implementasjon → flermodell-review → forståelsesport |
+| [`docs/FABRIKKEN.md`](docs/FABRIKKEN.md) | Utviklingsprosessen, pluss [sjekklisten](docs/FABRIKKEN.md#engangsoppsett) over det bare du kan gjøre |
 | [`docs/FORSTAAELSE.md`](docs/FORSTAAELSE.md) | Forståelsesporten: nivåene, kravene og menneskets pensum |
 | [`docs/KANTTILFELLER.md`](docs/KANTTILFELLER.md) | Kanttilfelle-strategien og registeret |
 | [`docs/DOMENE.md`](docs/DOMENE.md) | Domenespråk og autorisasjonsmatrise |

@@ -172,35 +172,36 @@ for tidsstyrte og hendelsesstyrte agenter uten egen workflow-kode.
 
 ## Engangsoppsett
 
-Gjøres én gang av mennesket (agenter kan ikke gjøre dette):
+Gjøres én gang av mennesket (agenter kan ikke gjøre dette). Huk av
+etter hvert:
 
-1. **Codex-review og `@codex`:** installer Codex-GitHub-appen og slå på
-   automatisk kodegjennomgang for repoet i Codex-innstillingene
-   (chatgpt.com/codex).
-2. **Droid-review og Fabrikken-stegene:** legg inn GitHub-secrets
-   `FACTORY_API_KEY` (app.factory.ai) og `SYNTHETIC_API_KEY`
-   (synthetic.new) under Settings → Secrets → Actions. Modellene byttes i
-   `.github/workflows/droid-review.yml` og `fabrikken-dispatch.yml`.
-3. **Cursor-skyagenter og `@cursor`:** koble GitHub-kontoen på
-   [cursor.com/agents](https://cursor.com/agents), lag en API-nøkkel
-   (Dashboard → API Keys) og legg den inn som secret `CURSOR_API_KEY`.
-   Slå på on-demand-bruk med et **lavt tak** (f.eks. 10–20 USD) — skyagenter
-   trekker fra planens inkluderte bruk først, og taket er sikkerhetsnettet.
-   Modell kan overstyres med variabelen `CURSOR_MODEL`.
-4. **Etikettene:** opprett dem med
-   `gh label create 'fabrikk:spesifikasjon' -c '#1d76db' -d 'Fyrer av spesifikasjonsutkast (GLM)'`,
-   `gh label create 'fabrikk:kritikk' -c '#d93f0b' -d 'Fyrer av kritikkrunde (Kimi + GPT-OSS)'` og
-   `gh label create 'fabrikk:implementer' -c '#0e8a16' -d 'Lanserer Cursor-skyagent som åpner PR'`.
-5. **Grenvern på `main`:** Settings → Branches → krev at
-   `ci / Kvalitetsporter` og `fabrikk-lint / PR følger Fabrikken` er grønne
-   før fletting, krev én godkjenning, og slå på squash-merge.
-6. **Slett grener etter fletting:** Settings → General → Pull Requests →
-   huk av **Automatically delete head branches**. Det er GitHubs egen
-   sletting etter squash-merge, ikke en egen jobb. Lukker du en PR uten
-   å flette, sletter du grenen manuelt i UI-et (GitHub gjør det ikke
-   automatisk da).
-7. **Cursor skyagent-miljø:** repoet har `.cursor/environment.json`; første
-   skyagent-VM bygges automatisk med `.cursor/install.sh`.
+- [ ] **Codex-review og `@codex`:** installer Codex-GitHub-appen og slå på
+  automatisk kodegjennomgang for repoet i Codex-innstillingene
+  (chatgpt.com/codex).
+- [ ] **Droid-review og Fabrikken-stegene:** legg inn GitHub-secrets
+  `FACTORY_API_KEY` (app.factory.ai) og `SYNTHETIC_API_KEY`
+  (synthetic.new) under Settings → Secrets → Actions. Modellene byttes i
+  `.github/workflows/droid-review.yml` og `fabrikken-dispatch.yml`.
+- [ ] **Cursor-skyagenter og `@cursor`:** koble GitHub-kontoen på
+  [cursor.com/agents](https://cursor.com/agents), lag en API-nøkkel
+  (Dashboard → API Keys) og legg den inn som secret `CURSOR_API_KEY`.
+  Slå på on-demand-bruk med et **lavt tak** (f.eks. 10–20 USD) — skyagenter
+  trekker fra planens inkluderte bruk først, og taket er sikkerhetsnettet.
+  Modell kan overstyres med variabelen `CURSOR_MODEL`.
+- [ ] **Etikettene:** opprett dem med
+  `gh label create 'fabrikk:spesifikasjon' -c '#1d76db' -d 'Fyrer av spesifikasjonsutkast (GLM)'`,
+  `gh label create 'fabrikk:kritikk' -c '#d93f0b' -d 'Fyrer av kritikkrunde (Kimi + GPT-OSS)'` og
+  `gh label create 'fabrikk:implementer' -c '#0e8a16' -d 'Lanserer Cursor-skyagent som åpner PR'`.
+- [ ] **Grenvern på `main`:** Settings → Branches → krev at
+  `ci / Kvalitetsporter` og `fabrikk-lint / PR følger Fabrikken` er grønne
+  før fletting, krev én godkjenning, og slå på squash-merge.
+- [ ] **Slett grener etter fletting:** Settings → General → Pull Requests →
+  huk av **Automatically delete head branches**. Det er GitHubs egen
+  sletting etter squash-merge, ikke en egen jobb. Lukker du en PR uten
+  å flette, sletter du grenen manuelt i UI-et (GitHub gjør det ikke
+  automatisk da).
+- [ ] **Cursor skyagent-miljø:** repoet har `.cursor/environment.json`; første
+  skyagent-VM bygges automatisk med `.cursor/install.sh`.
 
 ## Hvorfor PR-er når jeg er alene i repoet?
 
