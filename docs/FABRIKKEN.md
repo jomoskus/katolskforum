@@ -12,7 +12,7 @@ skriver kode aldri er den eneste som vurderer den:
 | --- | --- | --- |
 | Cursor (abonnement) | Cursor-agenter (editor, CLI og sky) | Implementasjon, manuell review av større endringer |
 | Codex (abonnement) | Codex CLI/cloud, **Codex-review** på PR-er | Spesifikasjon, implementasjon, automatisk review |
-| Synthetic.new (fast pris) | **GLM** og **Kimi** via Factory Droid (CLI/CI) | To uavhengige automatiske reviews per PR |
+| Synthetic.new (fast pris) | **GLM**, **Kimi** og **GPT-OSS** via Factory Droid (CLI/CI) | Spesifikasjonsutkast, kritikk og uavhengige reviews |
 
 Mennesket er produkteier og eneste som fletter til `main`.
 
@@ -135,19 +135,57 @@ Bare mennesket fletter. Squash-merge for ryddig historikk. Grenen slettes.
 - Når en agent gjør samme feil to ganger, er det prosessen som skal
   oppdateres, ikke bare koden.
 
+## Automatisering av stegene
+
+GitHub er tilstandsmaskinen: **etiketter på issues er knappene** som fyrer
+av riktig agent for riktig steg. Workflowen `fabrikken-dispatch` lytter på
+etikettene, poster resultatet som kommentar og fjerner etiketten etterpå
+(sett den igjen for å kjøre steget på nytt).
+
+| Trigger | Hva skjer automatisk | Kostnadsprofil |
+| --- | --- | --- |
+| Etikett `fabrikk:spesifikasjon` | GLM (Droid) skriver spesifikasjonsutkast som kommentar | Fast pris (Synthetic) |
+| Etikett `fabrikk:kritikk` | Kimi og GPT-OSS kritiserer utkastet hver for seg | Fast pris (Synthetic) |
+| Etikett `fabrikk:implementer` | Cursor-skyagent lanseres via API, planlegger og åpner PR | Inkludert bruk først; stoppes av on-demand-taket ditt |
+| PR åpnes/oppdateres | `ci` (alle porter), `droid-review` (GLM + Kimi), Codex-review | Fast pris / inkludert |
+| PR-beskrivelse | `fabrikk-lint` krever «Til mennesket» + forståelseserklæring | Gratis |
+
+Promptene per steg ligger i `.github/fabrikken/` og kan forbedres som all
+annen kode. Merk at spesifikasjonsforfatteren (GLM) bevisst er en annen
+modellfamilie enn kritikerne (Kimi, GPT-OSS).
+
+**Manuelle spor (dekket av abonnementene):** kommenter `@codex` eller
+`@cursor` direkte på et issue eller en PR for å sette en skyagent på saken
+— mentions må komme fra et menneske (agent-postede mentions trigges ikke,
+det er derfor workflowen bruker CLI/API). Cursor har i tillegg native
+**Automations** ([cursor.com/automations](https://cursor.com/automations))
+for tidsstyrte og hendelsesstyrte agenter uten egen workflow-kode.
+
 ## Engangsoppsett
 
 Gjøres én gang av mennesket (agenter kan ikke gjøre dette):
 
-1. **Codex-review:** slå på automatisk kodegjennomgang for repoet i
-   Codex-innstillingene (chatgpt.com/codex).
-2. **Droid-review:** legg inn GitHub-secrets `FACTORY_API_KEY` (app.factory.ai)
-   og `SYNTHETIC_API_KEY` (synthetic.new) under Settings → Secrets → Actions.
-   Modellene (GLM og Kimi) byttes ved å redigere matrisen i
-   `.github/workflows/droid-review.yml`.
-3. **Grenvern på `main`:** Settings → Branches → krev at `ci / Kvalitetsporter`
-   er grønn før fletting, krev én godkjenning, og slå på squash-merge.
-4. **Cursor skyagenter:** repoet har `.cursor/environment.json`; første
+1. **Codex-review og `@codex`:** installer Codex-GitHub-appen og slå på
+   automatisk kodegjennomgang for repoet i Codex-innstillingene
+   (chatgpt.com/codex).
+2. **Droid-review og Fabrikken-stegene:** legg inn GitHub-secrets
+   `FACTORY_API_KEY` (app.factory.ai) og `SYNTHETIC_API_KEY`
+   (synthetic.new) under Settings → Secrets → Actions. Modellene byttes i
+   `.github/workflows/droid-review.yml` og `fabrikken-dispatch.yml`.
+3. **Cursor-skyagenter og `@cursor`:** koble GitHub-kontoen på
+   [cursor.com/agents](https://cursor.com/agents), lag en API-nøkkel
+   (Dashboard → API Keys) og legg den inn som secret `CURSOR_API_KEY`.
+   Slå på on-demand-bruk med et **lavt tak** (f.eks. 10–20 USD) — skyagenter
+   trekker fra planens inkluderte bruk først, og taket er sikkerhetsnettet.
+   Modell kan overstyres med variabelen `CURSOR_MODEL`.
+4. **Etikettene:** opprett dem med
+   `gh label create 'fabrikk:spesifikasjon' -c '#1d76db' -d 'Fyrer av spesifikasjonsutkast (GLM)'`,
+   `gh label create 'fabrikk:kritikk' -c '#d93f0b' -d 'Fyrer av kritikkrunde (Kimi + GPT-OSS)'` og
+   `gh label create 'fabrikk:implementer' -c '#0e8a16' -d 'Lanserer Cursor-skyagent som åpner PR'`.
+5. **Grenvern på `main`:** Settings → Branches → krev at
+   `ci / Kvalitetsporter` og `fabrikk-lint / PR følger Fabrikken` er grønne
+   før fletting, krev én godkjenning, og slå på squash-merge.
+6. **Cursor skyagent-miljø:** repoet har `.cursor/environment.json`; første
    skyagent-VM bygges automatisk med `.cursor/install.sh`.
 
 ## Hvorfor PR-er når jeg er alene i repoet?

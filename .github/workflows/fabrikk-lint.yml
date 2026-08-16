@@ -1,0 +1,40 @@
+# Deterministisk vakt for forståelsesporten (docs/FORSTAAELSE.md):
+# PR-beskrivelsen må inneholde «Til mennesket»-seksjonen fra agenten og
+# forståelseserklæringen mennesket fyller ut. Anbefales som påkrevd sjekk
+# i grenvernet sammen med ci.
+
+name: fabrikk-lint
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  pr-beskrivelse:
+    name: PR følger Fabrikken
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sjekk obligatoriske seksjoner
+        env:
+          BODY: ${{ github.event.pull_request.body }}
+        run: |
+          status=0
+
+          if ! printf '%s' "$BODY" | grep -q '## Til mennesket'; then
+            echo "::error::PR-beskrivelsen mangler seksjonen '## Til mennesket' (jf. docs/FORSTAAELSE.md og AGENTS.md)."
+            status=1
+          fi
+
+          if ! printf '%s' "$BODY" | grep -q '## Forståelseserklæring'; then
+            echo "::error::PR-beskrivelsen mangler seksjonen '## Forståelseserklæring' (jf. docs/FORSTAAELSE.md)."
+            status=1
+          fi
+
+          if [ "$status" -eq 0 ]; then
+            echo "PR-beskrivelsen inneholder de obligatoriske Fabrikken-seksjonene."
+          fi
+
+          exit "$status"

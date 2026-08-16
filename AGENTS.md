@@ -29,7 +29,9 @@ are posts.
 
 - Every change follows the process in `docs/FABRIKKEN.md` (spec -> edge cases
   -> plan -> implementation -> multi-model review -> human understanding gate
-  -> merge).
+  -> merge). Stages are triggered by issue labels (`fabrikk:spesifikasjon`,
+  `fabrikk:kritikk`, `fabrikk:implementer`); stage prompts live in
+  `.github/fabrikken/`.
 - Edge-case thinking is mandatory: consult and update `docs/KANTTILFELLER.md`.
 - Domain terms are defined in `docs/DOMENE.md`; use those exact words in code and UI.
 - Architecture decisions live in `docs/beslutninger/` (ADRs). Never silently
