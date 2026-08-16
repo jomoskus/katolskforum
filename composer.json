@@ -17,6 +17,7 @@
         "livewire/blaze": "^1.0",
         "livewire/flux": "^2.13.1",
         "livewire/livewire": "^4.1",
+        "sentry/sentry-laravel": "^4.27",
         "spatie/laravel-sluggable": "^4.0"
     },
     "require-dev": {
@@ -24,6 +25,7 @@
         "fakerphp/faker": "^1.24",
         "larastan/larastan": "^3.9",
         "laravel-lang/common": "^6.8",
+        "laravel/boost": "^2.5",
         "laravel/pail": "^1.2.5",
         "laravel/pao": "^1.0.6",
         "laravel/pint": "^1.27",
