@@ -1,41 +1,69 @@
 <?php
 
-namespace Tests\Feature\Auth;
-
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Actions\Fortify\CreateNewUser;
+use App\Models\User;
+use App\Providers\FortifyServiceProvider;
 use Laravel\Fortify\Features;
-use Tests\TestCase;
 
-class RegistrationTest extends TestCase
-{
-    use RefreshDatabase;
+covers(CreateNewUser::class, FortifyServiceProvider::class);
 
-    protected function setUp(): void
-    {
-        parent::setUp();
+beforeEach(function (): void {
+    $this->skipUnlessFortifyHas(Features::registration());
+});
 
-        $this->skipUnlessFortifyHas(Features::registration());
-    }
+test('registration screen can be rendered', function (): void {
+    $response = $this->get(route('register'));
 
-    public function test_registration_screen_can_be_rendered(): void
-    {
-        $response = $this->get(route('register'));
+    $response->assertOk();
+});
 
-        $response->assertOk();
-    }
+test('new users can register', function (): void {
+    $response = $this->post(route('register.store'), [
+        'name' => 'John Doe',
+        'email' => 'test@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+    ]);
 
-    public function test_new_users_can_register(): void
-    {
-        $response = $this->post(route('register.store'), [
-            'name' => 'John Doe',
-            'email' => 'test@example.com',
-            'password' => 'password',
-            'password_confirmation' => 'password',
-        ]);
+    $response->assertSessionHasNoErrors()
+        ->assertRedirect(route('dashboard', absolute: false));
 
-        $response->assertSessionHasNoErrors()
-            ->assertRedirect(route('dashboard', absolute: false));
+    $this->assertAuthenticated();
+});
 
-        $this->assertAuthenticated();
-    }
-}
+test('registration fails with invalid input', function (array $input, string $errorField): void {
+    $response = $this->post(route('register.store'), [
+        'name' => 'John Doe',
+        'email' => 'test@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+        ...$input,
+    ]);
+
+    $response->assertSessionHasErrors($errorField);
+
+    $this->assertGuest();
+    expect(User::query()->count())->toBe(0);
+})->with([
+    'missing name' => [['name' => ''], 'name'],
+    'invalid email' => [['email' => 'not-an-email'], 'email'],
+    'missing password' => [['password' => '', 'password_confirmation' => ''], 'password'],
+    'password confirmation mismatch' => [['password_confirmation' => 'different'], 'password'],
+    'password too short' => [['password' => 'short', 'password_confirmation' => 'short'], 'password'],
+]);
+
+test('registration fails when the email address is already taken', function (): void {
+    User::factory()->create(['email' => 'taken@example.com']);
+
+    $response = $this->post(route('register.store'), [
+        'name' => 'John Doe',
+        'email' => 'taken@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+    ]);
+
+    $response->assertSessionHasErrors('email');
+
+    $this->assertGuest();
+    expect(User::query()->count())->toBe(1);
+});
