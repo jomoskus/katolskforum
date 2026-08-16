@@ -203,6 +203,19 @@ etter hvert:
 - [ ] **Cursor skyagent-miljø:** repoet har `.cursor/environment.json`; første
   skyagent-VM bygges automatisk med `.cursor/install.sh`.
 
+## Før lansering
+
+Gjøres av mennesket når forumet skal ut, ikke som del av GitHub-oppsettet.
+Detaljer i `docs/OBSERVABILITET.md`.
+
+- [ ] Nightwatch-app på [nightwatch.laravel.com](https://nightwatch.laravel.com)
+  med **EU-lagring**, `NIGHTWATCH_TOKEN` og `NIGHTWATCH_ENABLED=true` i
+  produksjon, agenten som systemd/Supervisor-tjeneste.
+- [ ] Ekte e-postleverandør (`MAIL_MAILER`, f.eks. Resend eller Postmark).
+- [ ] `APP_DEBUG=false`, HTTPS og DNS mot katolskforum.no.
+- [ ] Ekstern ping mot forsiden og `/up`.
+- [ ] Backup av SQLite-filen (Litestream eller jevnlig kopi).
+
 ## Hvorfor PR-er når jeg er alene i repoet?
 
 Fordi hele flermodell-maskineriet er festet til PR-er: CI-portene kjører på

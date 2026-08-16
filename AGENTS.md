@@ -72,6 +72,8 @@ written in Norwegian, with:
 - All user-submitted markdown must go through `App\Support\Markdown` /
   `<x-markdown>`. Never echo user input with `{!! !!}`.
 - `users.is_admin` is intentionally not mass-assignable; keep it that way.
+- Observability is Laravel Nightwatch (ADR-0009), not Sentry. Do not add
+  `sentry/sentry-laravel` back. Keep Nightwatch disabled in tests.
 - New tests: mirror the structure in `tests/Feature/Forum/` and add `covers()`.
 
 ## Boundaries
