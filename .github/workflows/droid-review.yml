@@ -1,0 +1,102 @@
+# Uavhengig tredjeparts kodegjennomgang med Factory Droid og en
+# Synthetic-modell (GLM/Kimi), jf. docs/FABRIKKEN.md steg 5.
+#
+# Krever GitHub-secrets:
+#   FACTORY_API_KEY    – fra app.factory.ai
+#   SYNTHETIC_API_KEY  – fra synthetic.new (kobles som custom model i Factory)
+# Valgfri GitHub-variabel:
+#   DROID_MODEL_ID     – modell-ID hos Synthetic (standard: hf:zai-org/GLM-4.6)
+#
+# Uten secrets hopper jobben stille over, slik at forks og lokale kloner
+# ikke feiler.
+
+name: droid-review
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    name: Uavhengig modellreview (GLM/Kimi)
+    runs-on: ubuntu-latest
+    env:
+      FACTORY_API_KEY: ${{ secrets.FACTORY_API_KEY }}
+      SYNTHETIC_API_KEY: ${{ secrets.SYNTHETIC_API_KEY }}
+      DROID_MODEL_ID: ${{ vars.DROID_MODEL_ID || 'hf:zai-org/GLM-4.6' }}
+
+    steps:
+      - name: Hopp over uten API-nøkler
+        if: env.FACTORY_API_KEY == '' || env.SYNTHETIC_API_KEY == ''
+        run: echo "FACTORY_API_KEY/SYNTHETIC_API_KEY er ikke satt – hopper over uavhengig review."
+
+      - name: Checkout code
+        if: env.FACTORY_API_KEY != '' && env.SYNTHETIC_API_KEY != ''
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install Factory Droid CLI
+        if: env.FACTORY_API_KEY != '' && env.SYNTHETIC_API_KEY != ''
+        run: curl -fsSL https://app.factory.ai/cli | sh && echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Configure Synthetic model
+        if: env.FACTORY_API_KEY != '' && env.SYNTHETIC_API_KEY != ''
+        run: |
+          mkdir -p ~/.factory
+          cat > ~/.factory/config.json << EOF
+          {
+            "custom_models": [
+              {
+                "model_display_name": "synthetic-reviewer",
+                "model": "${DROID_MODEL_ID}",
+                "base_url": "https://api.synthetic.new/openai/v1",
+                "api_key": "${SYNTHETIC_API_KEY}",
+                "provider": "generic-chat-completion-api"
+              }
+            ]
+          }
+          EOF
+
+      - name: Write review prompt
+        if: env.FACTORY_API_KEY != '' && env.SYNTHETIC_API_KEY != ''
+        run: |
+          cat > /tmp/droid-prompt.md << 'EOF'
+          Du er en uavhengig kodegransker for Katolsk forum (Laravel 13).
+          Les prosjektreglene i AGENTS.md, kanttilfelleregisteret i
+          docs/KANTTILFELLER.md og diffen i /tmp/pr.diff.
+
+          Vurder KUN det diffen endrer:
+          1. Bugs og logiske feil (viktigst)
+          2. Manglende kanttilfeller og tester
+          3. Sikkerhet (XSS, autorisasjon, masse-tilordning)
+          4. Brudd på prosjektets regler og domenespråk
+
+          Ikke skriv kode. Svar på norsk i punktliste med alvorlighetsgrad
+          (kritisk/advarsel/forslag) per funn, med fil og linje. Skriv
+          «Ingen funn.» hvis diffen ser god ut.
+          EOF
+
+      - name: Review the diff
+        if: env.FACTORY_API_KEY != '' && env.SYNTHETIC_API_KEY != ''
+        run: |
+          git diff "origin/${GITHUB_BASE_REF}...HEAD" > /tmp/pr.diff
+          droid exec --auto low -m custom:synthetic-reviewer -f /tmp/droid-prompt.md > /tmp/review.md \
+            || echo "Droid-review feilet – se workflow-loggen." > /tmp/review.md
+          cat /tmp/review.md
+
+      - name: Post review as PR comment
+        if: env.FACTORY_API_KEY != '' && env.SYNTHETIC_API_KEY != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "## Uavhengig modellreview (Droid / ${DROID_MODEL_ID})"
+            echo
+            cat /tmp/review.md
+          } > /tmp/comment.md
+          gh pr comment "${{ github.event.pull_request.number }}" --body-file /tmp/comment.md --repo "${{ github.repository }}"
