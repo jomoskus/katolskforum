@@ -29,9 +29,13 @@ are posts.
 
 - Every change follows the process in `docs/FABRIKKEN.md` (spec -> edge cases
   -> plan -> implementation -> multi-model review -> human understanding gate
-  -> merge). Stages are triggered by issue labels (`fabrikk:spesifikasjon`,
+  -> squash-merge). Stages are triggered by issue labels (`fabrikk:spesifikasjon`,
   `fabrikk:kritikk`, `fabrikk:implementer`); stage prompts live in
   `.github/fabrikken/`.
+- Branches are temporary (ADR-0008): every branch belongs to an open PR;
+  only `main` is long-lived. Open a PR — do not leave a branch as archive.
+  Discarded work is closed and the branch deleted in the GitHub UI; it is
+  never merged "to clean up". GitHub deletes the head branch after merge.
 - Edge-case thinking is mandatory: consult and update `docs/KANTTILFELLER.md`.
 - Domain terms are defined in `docs/DOMENE.md`; use those exact words in code and UI.
 - Architecture decisions live in `docs/beslutninger/` (ADRs). Never silently

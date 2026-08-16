@@ -3,7 +3,9 @@ GitHub-issuet med godkjent spesifikasjon (i sakens tekst/kommentarer).
 
 Følg docs/FABRIKKEN.md steg 3–4 og AGENTS.md:
 
-1. Jobb på grenen `fabrikk/<issue-nr>-<kort-slug>`.
+1. Jobb på en gren med åpen PR mot `main`. Navngi selv
+   `fabrikk/<issue-nr>-<kort-slug>`; Cursor-skyagenter kan bruke sitt
+   eget prefiks. La ikke grenen ligge uten PR (ADR-0008).
 2. Start PR-beskrivelsen med en `## Plan`-seksjon: filer som endres,
    migrasjoner, testliste og risiko.
 3. Implementer testdrevet der det er praktisk; dekk alle kanttilfellene

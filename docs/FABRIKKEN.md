@@ -125,7 +125,16 @@ forståelseserklæringen og er først gyldig når kravene er oppfylt.
 
 ### Steg 7 – Fletting (menneske)
 
-Bare mennesket fletter. Squash-merge for ryddig historikk. Grenen slettes.
+Bare mennesket fletter. Squash-merge for ryddig historikk.
+
+**Grener er midlertidige** (ADR-0008). `main` er den eneste grenen som
+får leve:
+
+- Hver gren hører til en åpen PR. Ingen gren uten PR er arkiv.
+- Flettes PR-en, slettes grenen. GitHub gjør det når «Automatically
+  delete head branches» er slått på (se engangsoppsettet).
+- Forkaster du arbeidet, lukker du PR-en og sletter grenen der og da
+  i GitHub-UI-et. Work flettes ikke inn «for å rydde».
 
 ### Steg 8 – Etterpå: overvåking og læring
 
@@ -185,7 +194,12 @@ Gjøres én gang av mennesket (agenter kan ikke gjøre dette):
 5. **Grenvern på `main`:** Settings → Branches → krev at
    `ci / Kvalitetsporter` og `fabrikk-lint / PR følger Fabrikken` er grønne
    før fletting, krev én godkjenning, og slå på squash-merge.
-6. **Cursor skyagent-miljø:** repoet har `.cursor/environment.json`; første
+6. **Slett grener etter fletting:** Settings → General → Pull Requests →
+   huk av **Automatically delete head branches**. Det er GitHubs egen
+   sletting etter squash-merge, ikke en egen jobb. Lukker du en PR uten
+   å flette, sletter du grenen manuelt i UI-et (GitHub gjør det ikke
+   automatisk da).
+7. **Cursor skyagent-miljø:** repoet har `.cursor/environment.json`; første
    skyagent-VM bygges automatisk med `.cursor/install.sh`.
 
 ## Hvorfor PR-er når jeg er alene i repoet?

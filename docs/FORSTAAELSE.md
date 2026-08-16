@@ -73,7 +73,8 @@ nivå 3 et kvarter. Det er prisen for å forbli sjef i eget repo.
 - Lese resultatet av `composer test` og vite hva hver port sjekker
   (stil, refaktorering, typer, tester, dekning, mutasjon) — og hvorfor
   ingen port kan svekkes for å bli grønn.
-- PR-flyten: gren → PR → porter → reviews → forståelsesport → squash-merge.
+- PR-flyten: gren → PR → porter → reviews → forståelsesport →
+  squash-merge → grenen slettes (`main` er den eneste langlivede grenen).
 - Domenereglene i `docs/DOMENE.md`, særlig autorisasjonsmatrisen.
 - Hva som aldri committes (`.env`, hemmeligheter) og hvor secrets bor
   (GitHub Actions-secrets).
