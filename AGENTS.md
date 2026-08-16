@@ -27,12 +27,30 @@ are posts.
 
 ## Process
 
-- Every change follows the process in `docs/FABRIKKEN.md`
-  (spec -> edge cases -> plan -> implementation -> multi-model review -> merge).
+- Every change follows the process in `docs/FABRIKKEN.md` (spec -> edge cases
+  -> plan -> implementation -> multi-model review -> human understanding gate
+  -> merge).
 - Edge-case thinking is mandatory: consult and update `docs/KANTTILFELLER.md`.
 - Domain terms are defined in `docs/DOMENE.md`; use those exact words in code and UI.
 - Architecture decisions live in `docs/beslutninger/` (ADRs). Never silently
   "improve" away something an ADR decided; propose a new ADR instead.
+
+## The human-understanding gate (mandatory PR section)
+
+Nothing merges before the human understands it (`docs/FORSTAAELSE.md`).
+Every PR description must therefore contain a `## Til mennesket` section,
+written in Norwegian, with:
+
+1. A jargon-free explanation of what changed, where and why.
+2. The proposed understanding level (1-3) per `docs/FORSTAAELSE.md`,
+   with a one-line justification. When in doubt, propose the higher level.
+3. Level 2+: a guided tour — the files to read, in reading order, one line
+   on what each file shows.
+4. Level 3: exactly three control questions about the change (no answers).
+   When the human answers in a PR comment, a model from a DIFFERENT family
+   than the implementer verifies the answers against the diff.
+5. "Dagens konsept": one concept from the diff explained in 3-5 sentences,
+   chosen to build the human's understanding over time.
 
 ## Non-obvious constraints
 

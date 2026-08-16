@@ -35,6 +35,9 @@ Alle lagene dekkes av faste abonnementer — ingen per-bruk-fakturering.
    størrelsen.
 5. **Ingen port svekkes for å bli grønn.** Terskler og regler endres bare
    gjennom egen PR med ADR.
+6. **Mennesket skal forstå det som flettes.** Ingen endring flettes før
+   mennesket har oppfylt forståelsesnivået endringen krever, se
+   `docs/FORSTAAELSE.md`. Fart er aldri en grunn til å hoppe over dette.
 
 ## Stegene
 
@@ -108,11 +111,23 @@ part i uenigheten) oppsummere begge syn og gi en anbefaling i PR-en.
 Mennesket avgjør. Uenigheten og utfallet noteres — gjentatte mønstre blir
 til regler i `AGENTS.md` eller nye porter.
 
-### Steg 6 – Fletting (menneske)
+### Steg 6 – Forståelsesporten (menneske)
+
+Før fletting skal mennesket forstå endringen på nivået den krever —
+nivåene, kravene per endringstype og mekanismene (teach-back,
+kontrollspørsmål, verifisering) er definert i `docs/FORSTAAELSE.md`.
+
+Kort: agenten leverer en «Til mennesket»-seksjon i PR-en (forklaring,
+foreslått nivå, omvisning i filene, kontrollspørsmål ved nivå 3, dagens
+konsept). Mennesket beviser forståelsen skriftlig i PR-en; ved nivå 3
+verifiserer en annen modellfamilie svarene. Godkjenningen i GitHub **er**
+forståelseserklæringen og er først gyldig når kravene er oppfylt.
+
+### Steg 7 – Fletting (menneske)
 
 Bare mennesket fletter. Squash-merge for ryddig historikk. Grenen slettes.
 
-### Steg 7 – Etterpå: overvåking og læring
+### Steg 8 – Etterpå: overvåking og læring
 
 - Produksjonsfeil fanges av overvåkingen (se `docs/OBSERVABILITET.md`).
 - Hver reell feil får: issue → regresjonstest → oppføring i
