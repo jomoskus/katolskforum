@@ -27,3 +27,5 @@ CI og minst én godkjenning; squash-merge; krev at grenen er à jour med
 
 - Litt mer seremoni for småfiks; oppveies av at maskineriet fanger feil før
   de når `main`, og av komplett sporbarhet.
+- Cursor Origin kan speile repoet for lesing og PR i Cursor; GitHub er
+  likevel kilden (issues, CI, secrets). Speilet detaches ikke.

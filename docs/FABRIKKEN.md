@@ -205,6 +205,9 @@ etter hvert:
   automatisk da).
 - [ ] **Cursor skyagent-miljø:** repoet har `.cursor/environment.json`; første
   skyagent-VM bygges automatisk med `.cursor/install.sh`.
+- [x] **Cursor Origin:** GitHub-repoet er speilet til Origin for lesing og
+  PR i Cursor. **GitHub forblir kilden.** Issues, Actions og secrets bor
+  bare der. Ikke «Detach from GitHub», og ikke bytt git-remote til Origin.
 
 ## Før lansering
 

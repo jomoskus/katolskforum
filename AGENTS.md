@@ -36,6 +36,9 @@ are posts.
   only `main` is long-lived. Open a PR — do not leave a branch as archive.
   Discarded work is closed and the branch deleted in the GitHub UI; it is
   never merged "to clean up". GitHub deletes the head branch after merge.
+- GitHub (`jomoskus/katolskforum`) is the source of truth. Cursor Origin is
+  a mirror for browsing and PRs inside Cursor. Do not detach the mirror or
+  point `origin` at Origin; Issues, Actions and secrets live only on GitHub.
 - Edge-case thinking is mandatory: consult and update `docs/KANTTILFELLER.md`.
 - Domain terms are defined in `docs/DOMENE.md`; use those exact words in code and UI.
 - Architecture decisions live in `docs/beslutninger/` (ADRs). Never silently
