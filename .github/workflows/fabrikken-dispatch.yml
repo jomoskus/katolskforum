@@ -1,0 +1,241 @@
+# Automatisering av Fabrikken-stegene (docs/FABRIKKEN.md): etiketter på
+# issues fyrer av riktig agent for riktig steg.
+#
+#   fabrikk:spesifikasjon -> GLM (Droid/Synthetic) skriver spesifikasjonsutkast
+#   fabrikk:kritikk       -> Kimi og GPT-OSS kritiserer hver for seg
+#   fabrikk:implementer   -> Cursor-skyagent lanseres og åpner PR
+#
+# Kostnadsprofil: Droid/Synthetic er fast pris. Cursor-skyagenter trekker
+# først fra planens inkluderte bruk og stoppes av on-demand-grensen du selv
+# setter i Cursor Dashboard.
+#
+# Etikettene fjernes etter kjøring, slik at samme steg kan trigges på nytt
+# ved å sette etiketten igjen. Uten API-nøkler hopper jobbene stille over.
+
+name: fabrikken-dispatch
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  spesifikasjon:
+    name: 'Steg 1: Spesifikasjonsutkast (GLM)'
+    if: github.event.label.name == 'fabrikk:spesifikasjon'
+    runs-on: ubuntu-latest
+    env:
+      FACTORY_API_KEY: ${{ secrets.FACTORY_API_KEY }}
+      SYNTHETIC_API_KEY: ${{ secrets.SYNTHETIC_API_KEY }}
+      GH_TOKEN: ${{ github.token }}
+      ISSUE: ${{ github.event.issue.number }}
+      MODEL: 'hf:zai-org/GLM-5.2'
+
+    steps:
+      - name: Hopp over uten API-nøkler
+        if: env.FACTORY_API_KEY == '' || env.SYNTHETIC_API_KEY == ''
+        run: echo "FACTORY_API_KEY/SYNTHETIC_API_KEY er ikke satt – hopper over."
+
+      - name: Checkout code
+        if: env.FACTORY_API_KEY != '' && env.SYNTHETIC_API_KEY != ''
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install and configure Droid
+        if: env.FACTORY_API_KEY != '' && env.SYNTHETIC_API_KEY != ''
+        run: |
+          curl -fsSL https://app.factory.ai/cli | sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          mkdir -p ~/.factory
+          cat > ~/.factory/config.json << EOF
+          {
+            "custom_models": [
+              {
+                "model_display_name": "synthetic-agent",
+                "model": "${MODEL}",
+                "base_url": "https://api.synthetic.new/openai/v1",
+                "api_key": "${SYNTHETIC_API_KEY}",
+                "provider": "generic-chat-completion-api"
+              }
+            ]
+          }
+          EOF
+
+      - name: Write specification draft
+        if: env.FACTORY_API_KEY != '' && env.SYNTHETIC_API_KEY != ''
+        run: |
+          {
+            cat .github/fabrikken/spesifikasjon.md
+            echo
+            echo '--- ISSUE ---'
+            gh issue view "$ISSUE" --repo "${{ github.repository }}" --json title,body \
+              --template '# {{.title}}{{"\n\n"}}{{.body}}'
+          } > /tmp/prompt.md
+          droid exec --auto low -m custom:synthetic-agent -f /tmp/prompt.md > /tmp/out.md \
+            || echo "Agenten feilet – se workflow-loggen." > /tmp/out.md
+
+      - name: Post draft and advance stage
+        if: env.FACTORY_API_KEY != '' && env.SYNTHETIC_API_KEY != ''
+        run: |
+          {
+            echo "## Utkast til spesifikasjon (GLM · ${MODEL})"
+            echo
+            cat /tmp/out.md
+            echo
+            echo '---'
+            echo '_Neste steg: les og juster utkastet, og sett etiketten `fabrikk:kritikk` for adversariell gjennomgang._'
+          } > /tmp/comment.md
+          gh issue comment "$ISSUE" --repo "${{ github.repository }}" --body-file /tmp/comment.md
+          gh issue edit "$ISSUE" --repo "${{ github.repository }}" --remove-label 'fabrikk:spesifikasjon'
+
+  kritikk:
+    name: 'Steg 2: Kritikk (${{ matrix.critic.name }})'
+    if: github.event.label.name == 'fabrikk:kritikk'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        critic:
+          - name: Kimi
+            model: 'hf:moonshotai/Kimi-K3'
+          - name: GPT-OSS
+            model: 'hf:openai/gpt-oss-120b'
+    env:
+      FACTORY_API_KEY: ${{ secrets.FACTORY_API_KEY }}
+      SYNTHETIC_API_KEY: ${{ secrets.SYNTHETIC_API_KEY }}
+      GH_TOKEN: ${{ github.token }}
+      ISSUE: ${{ github.event.issue.number }}
+      MODEL: ${{ matrix.critic.model }}
+      CRITIC: ${{ matrix.critic.name }}
+
+    steps:
+      - name: Hopp over uten API-nøkler
+        if: env.FACTORY_API_KEY == '' || env.SYNTHETIC_API_KEY == ''
+        run: echo "FACTORY_API_KEY/SYNTHETIC_API_KEY er ikke satt – hopper over."
+
+      - name: Checkout code
+        if: env.FACTORY_API_KEY != '' && env.SYNTHETIC_API_KEY != ''
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install and configure Droid
+        if: env.FACTORY_API_KEY != '' && env.SYNTHETIC_API_KEY != ''
+        run: |
+          curl -fsSL https://app.factory.ai/cli | sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          mkdir -p ~/.factory
+          cat > ~/.factory/config.json << EOF
+          {
+            "custom_models": [
+              {
+                "model_display_name": "synthetic-agent",
+                "model": "${MODEL}",
+                "base_url": "https://api.synthetic.new/openai/v1",
+                "api_key": "${SYNTHETIC_API_KEY}",
+                "provider": "generic-chat-completion-api"
+              }
+            ]
+          }
+          EOF
+
+      - name: Critique the specification
+        if: env.FACTORY_API_KEY != '' && env.SYNTHETIC_API_KEY != ''
+        run: |
+          {
+            cat .github/fabrikken/kritikk.md
+            echo
+            echo '--- ISSUE MED KOMMENTARER ---'
+            gh issue view "$ISSUE" --repo "${{ github.repository }}" --comments
+          } > /tmp/prompt.md
+          droid exec --auto low -m custom:synthetic-agent -f /tmp/prompt.md > /tmp/out.md \
+            || echo "Agenten feilet – se workflow-loggen." > /tmp/out.md
+
+      - name: Post critique
+        if: env.FACTORY_API_KEY != '' && env.SYNTHETIC_API_KEY != ''
+        run: |
+          {
+            echo "## Spesifikasjonskritikk (${CRITIC} · ${MODEL})"
+            echo
+            cat /tmp/out.md
+          } > /tmp/comment.md
+          gh issue comment "$ISSUE" --repo "${{ github.repository }}" --body-file /tmp/comment.md
+
+  fjern-kritikk-etikett:
+    name: 'Steg 2: Rydd etikett'
+    if: github.event.label.name == 'fabrikk:kritikk'
+    needs: kritikk
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Remove label and point to next stage
+        run: |
+          gh issue comment "${{ github.event.issue.number }}" --repo "${{ github.repository }}" \
+            --body '_Kritikkrunden er ferdig. Konsolider spesifikasjonen (menneske eller agent), godkjenn den, og sett `fabrikk:implementer` for å lansere implementasjonsagenten._'
+          gh issue edit "${{ github.event.issue.number }}" --repo "${{ github.repository }}" --remove-label 'fabrikk:kritikk'
+
+  implementer:
+    name: 'Steg 3–4: Lanser Cursor-skyagent'
+    if: github.event.label.name == 'fabrikk:implementer'
+    runs-on: ubuntu-latest
+    env:
+      CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+      GH_TOKEN: ${{ github.token }}
+      ISSUE: ${{ github.event.issue.number }}
+      # Modell for skyagenten; se cursor.com/docs for gyldige ID-er.
+      CURSOR_MODEL: ${{ vars.CURSOR_MODEL || 'composer-2' }}
+
+    steps:
+      - name: Veiled manuelt uten API-nøkkel
+        if: env.CURSOR_API_KEY == ''
+        run: |
+          gh issue comment "$ISSUE" --repo "${{ github.repository }}" \
+            --body '`CURSOR_API_KEY` er ikke satt, så skyagenten må lanseres manuelt: åpne [cursor.com/agents](https://cursor.com/agents) (eller kommenter `@cursor` her), og pek på prompten i `.github/fabrikken/implementer.md` sammen med dette issuet.'
+          gh issue edit "$ISSUE" --repo "${{ github.repository }}" --remove-label 'fabrikk:implementer'
+
+      - name: Checkout code
+        if: env.CURSOR_API_KEY != ''
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Launch Cursor cloud agent
+        if: env.CURSOR_API_KEY != ''
+        run: |
+          {
+            cat .github/fabrikken/implementer.md
+            echo
+            echo '--- ISSUE MED KOMMENTARER ---'
+            gh issue view "$ISSUE" --repo "${{ github.repository }}" --comments
+          } > /tmp/prompt.md
+
+          jq -n \
+            --rawfile prompt /tmp/prompt.md \
+            --arg model "$CURSOR_MODEL" \
+            --arg repo "https://github.com/${{ github.repository }}" \
+            '{prompt: {text: $prompt}, model: {id: $model}, repos: [{url: $repo, startingRef: "main"}]}' > /tmp/payload.json
+
+          http_code=$(curl -sS -o /tmp/response.json -w '%{http_code}' \
+            --request POST https://api.cursor.com/v1/agents \
+            --header "Authorization: Bearer ${CURSOR_API_KEY}" \
+            --header 'Content-Type: application/json' \
+            --data @/tmp/payload.json)
+
+          echo "HTTP ${http_code}"
+          cat /tmp/response.json
+
+          if [ "$http_code" -ge 300 ]; then
+            gh issue comment "$ISSUE" --repo "${{ github.repository }}" \
+              --body "Klarte ikke å lansere Cursor-skyagenten (HTTP ${http_code}). Sjekk workflow-loggen, API-nøkkelen og at on-demand-grensen i Cursor Dashboard har nok rom."
+            exit 1
+          fi
+
+          agent_id=$(jq -r '.agent.id // .id // "ukjent"' /tmp/response.json)
+          gh issue comment "$ISSUE" --repo "${{ github.repository }}" \
+            --body "Cursor-skyagent lansert (id: \`${agent_id}\`, modell: \`${CURSOR_MODEL}\`). Følg med på [cursor.com/agents](https://cursor.com/agents); agenten åpner PR mot \`main\` når den er ferdig."
+          gh issue edit "$ISSUE" --repo "${{ github.repository }}" --remove-label 'fabrikk:implementer'
